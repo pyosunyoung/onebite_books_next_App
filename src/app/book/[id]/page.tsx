@@ -1,19 +1,26 @@
 import style from "./page.module.css";
 
+export function generateStaticParams(){ //정적인 파라미터를 생성하는 함수.
+  return [{id:"1"}, {id:"2"}, {id:"3"}]; //book/1 ,2 ,3 빌드 타임에 생성됨.
+}
+
 export default async function Page({
   params,
 }: {
-  params: { id: string | string[] };
+  params: Promise<{ id: string }>;
 }) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_SERVER_URL}/book/${params.id}`)
+  // ⭐ Next.js 15.1: params는 Promise이므로 await 필수
+  const { id } = await params;
 
-  if(!response.ok){
-    return <div>오류가 발생했습니다...</div>
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_SERVER_URL}/book/${id}`
+  );
+
+  if (!response.ok) {
+    return <div>오류가 발생했습니다...</div>;
   }
 
-  const book = await response.json()
-
-  const { id } = await params;
+  const book = await response.json();
 
   const { title, subTitle, description, author, publisher, coverImgUrl } = book;
 
