@@ -1,9 +1,14 @@
+import { notFound } from "next/navigation";
 import style from "./page.module.css";
+
+// export const dynamicParams = false;
+//generateStaticParams()안 
+// id(1,2,3) 제외한 다이나믹 페이지는 모두 404 not found로 만들어보자
 
 export function generateStaticParams(){ //정적인 파라미터를 생성하는 함수.
   return [{id:"1"}, {id:"2"}, {id:"3"}]; //book/1 ,2 ,3 빌드 타임에 생성됨.
-}
-
+}// 근데 실시간으로 4번~까지 생성됨.
+//그 이유는 실시간으로 다이나믹 페이지로서 만들어지기 떄문임. 그 이후 다시 랜더링 할떄는 풀라우트 캐시가 적용되어 빠르게 랜더됨.
 export default async function Page({
   params,
 }: {
@@ -17,6 +22,9 @@ export default async function Page({
   );
 
   if (!response.ok) {
+    if(response.status === 404){
+      notFound();
+    }
     return <div>오류가 발생했습니다...</div>;
   }
 

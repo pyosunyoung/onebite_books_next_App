@@ -2,10 +2,25 @@ import BookItem from "@/components/book-item";
 import style from "./page.module.css";
 import books from "@/mock/books.json";
 import { BookData } from "@/types";
+import { delay } from "@/util/delay";
+import { Suspense } from "react";
+import BookItemSkeleton from "@/components/skeleton/book-item-skeleton";
+import BookListSkeleton from "@/components/skeleton/book-list-skeleton";
 
+// export const dynamic = 'error'
+//특정 페이지의 유형을 강제로 static, Dynamic 페이지로 설정
+//1. auto : 기본값(생략가능), 아무것도 강제하지 않음
+//2. force-dynamic: 페이지를 강제로 Dynamic 페이지로 설정.
+//3. force-static: 페이지를 강제로 static 페이지로 설정.
+//4. error: 페이지를 강제로 static 페이지로 설정 (static으로 설정하면 안되는 이유가 있다면 => 빌드 오류를 발생시킴)
+
+//이 옵션은 특별한 상황이 아니면 권장하지 않음.
+//app router같은 경우는 각가의 컴포넌트들이 동작에 따라서 스태틱, 다이나믹으로 자동설정해주는 좋은 기능을
+//이미 가지고 있어서 굳이? 사용안하는 것이 좋긴해
 async function AllBooks() {
+  await delay(1500);
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_SERVER_URL}/book`,
-    {cache : "force-cache"}
+    { cache: "force-cache" }
   );
   if (!response.ok) {
     return <div>오류가 발생했습니다...</div>
@@ -21,8 +36,9 @@ async function AllBooks() {
 }
 
 async function RecoBooks() {
+  await delay(3000);
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_SERVER_URL}/book/random`,
-    {next: {revalidate: 3}}
+    { next: { revalidate: 3 } }
   );
   if (!response.ok) {
     return <div>오류가 발생했습니다...</div>
@@ -35,18 +51,26 @@ async function RecoBooks() {
   </div>
 }
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
-
-
   return (
     <div className={style.container}>
       <section>
         <h3>지금 추천하는 도서</h3>
-        <RecoBooks/>
+        <Suspense fallback={
+            <BookListSkeleton count={3}/>}>
+          <RecoBooks />
+        </Suspense>
+
       </section>
       <section>
         <h3>등록된 모든 도서</h3>
-        <AllBooks />
+        <Suspense fallback={
+          <BookListSkeleton count={10}/>}>
+          <AllBooks />
+        </Suspense>
+
       </section>
     </div>
   );

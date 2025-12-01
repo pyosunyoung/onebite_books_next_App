@@ -8,6 +8,7 @@ export default function Layout({ // with searchbar에 포함되는 모든 페이
 }) {
   return (
     <div>
+
       <Suspense fallback={<div>Loading...</div>}>
         <Searchbar />
       </Suspense>
