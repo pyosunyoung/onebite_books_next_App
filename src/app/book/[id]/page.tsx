@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import style from "./page.module.css";
-import { createReviewAction } from "@/actions/create-review.action";
+import { ReviewData } from "@/types";
+import ReviewItem from "@/components/review-item";
+import ReviewEditor from "@/components/review-editor";
 // export const dynamicParams = false;
 //generateStaticParams()안 
 // id(1,2,3) 제외한 다이나믹 페이지는 모두 404 not found로 만들어보자
@@ -39,30 +41,36 @@ async function BookDetail({bookId}:{bookId: string}) {
   );
 }
 
-function ReviewEditor({bookId}: {bookId: string}){
-  //bookid를 직접 작성하는 것 방지
-  return <section>
-    <form action={createReviewAction}>
-      <input name="bookId" value={bookId} hidden readOnly/>
-      
-      <input required name="content" placeholder="리뷰 내용"/>
-      <input required name="author" placeholder="작성자"/>
-      <button type="submit">작성하기</button>
-    </form>
-  </section>
+async function ReviewList({bookId}: {bookId: string}) {
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_SERVER_URL}/review/book/${bookId}`,
+    // {next : {tags: [`review-${bookId}`]}}
+  )
+
+  if(!response.ok){
+    throw new Error(`Review fetch failed : ${response.statusText}`);
+  }
+
+  const reviews: ReviewData[] = await response.json();
+
+  return <section>{reviews.map((review) => <ReviewItem key={`review-item-${review.id}`} {...review}/>)}</section>;
 }
 
-export function generateStaticParams(){ //정적인 파라미터를 생성하는 함수.
-  return [{id:"1"}, {id:"2"}, {id:"3"}]; //book/1 ,2 ,3 빌드 타임에 생성됨.
-}// 근데 실시간으로 4번~까지 생성됨.
-//그 이유는 실시간으로 다이나믹 페이지로서 만들어지기 떄문임. 그 이후 다시 랜더링 할떄는 풀라우트 캐시가 적용되어 빠르게 랜더됨.
+// export function generateStaticParams(){ //정적인 파라미터를 생성하는 함수.
+//   return [{id:"1"}, {id:"2"}, {id:"3"}]; //book/1 ,2 ,3 빌드 타임에 생성됨.
+// }// 근데 실시간으로 4번~까지 생성됨.
+// //그 이유는 실시간으로 다이나믹 페이지로서 만들어지기 떄문임. 그 이후 다시 랜더링 할떄는 풀라우트 캐시가 적용되어 빠르게 랜더됨.
+
+
 export default async function Page({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {  // ⭐ Next.js 15.1: params는 Promise이므로 await 필수
+  const {id} = await params
   return <div className={style.container}>
-    <BookDetail bookId={(await params).id}/>
-    <ReviewEditor bookId={(await params).id}/>
+    <BookDetail bookId={id}/>
+    <ReviewEditor bookId={id}/>
+    <ReviewList bookId={id} />
   </div>
 }
