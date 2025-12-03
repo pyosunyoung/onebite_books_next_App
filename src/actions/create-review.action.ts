@@ -1,6 +1,5 @@
 'use server'
-import { delay } from "@/util/delay";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 
  // 지시자. 이 함수는 서버 액션으로 동작됨.
 
@@ -20,7 +19,6 @@ export async function createReviewAction(_: any, formData : FormData ) {
     }
 
     try{
-      await delay(2000);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_SERVER_URL}/review`,{
         method:"POST",
         body: JSON.stringify({bookId, content, author}),

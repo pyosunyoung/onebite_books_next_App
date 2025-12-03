@@ -8,6 +8,22 @@ import Image from "next/image";
 //generateStaticParams()안 
 // id(1,2,3) 제외한 다이나믹 페이지는 모두 404 not found로 만들어보자
 
+export async function generateStaticParams(){ //정적인 파라미터를 생성하는 함수.
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_SERVER_URL}/book`);
+  if(!response.ok){
+    throw new Error(response.statusText);
+  }
+
+  const books: BookData[] = await response.json();
+  return books.map((book)=> ({
+    id: book.id.toString(),
+  })) // 이렇게 바꿔주면 빌드타임에 현재 존재하는 모든 도서의 데이터를 불러와서 페이지를 정적으로 생성.
+
+  // return [{id:"1"}, {id:"2"}, {id:"3"}]; //book/1 ,2 ,3 빌드 타임에 생성됨.
+}// 근데 실시간으로 4번~까지 생성됨.
+// //그 이유는 실시간으로 다이나믹 페이지로서 만들어지기 떄문임. 그 이후 다시 랜더링 할떄는 풀라우트 캐시가 적용되어 빠르게 랜더됨.
+
 async function BookDetail({bookId}:{bookId: string}) {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_SERVER_URL}/book/${bookId}`
